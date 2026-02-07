@@ -23,9 +23,10 @@ export default function Home() {
     },
     {
       title: "The Pattern Bridge",
-      status: "locked" as const,
-      icon: Dna, // Representing sequences/patterns
+      status: "active" as const,
+      icon: Dna,
       color: "bg-blue-500",
+      href: "/pattern-bridge"
     },
     {
       title: "Algebra Balance",
