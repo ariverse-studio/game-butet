@@ -10,9 +10,12 @@ import DataTable from "./DataTable";
 import MachineVisual from "./MachineVisual";
 import confetti from "canvas-confetti";
 import clsx from "clsx";
+import GameTimer from "../GameTimer";
+import { useSettings } from "../../context/SettingsContext";
 
 export default function FunctionMachineGame() {
     const { addCoins } = useCoins();
+    const { defaultTime } = useSettings();
 
     // SFX
     const playSuccess = useSound("https://cdn.pixabay.com/audio/2021/08/09/audio_7232134569.mp3");
@@ -132,9 +135,21 @@ export default function FunctionMachineGame() {
         <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
             {/* Header */}
             <header className="p-6 bg-white border-b border-slate-200 flex justify-between items-center sticky top-0 z-50">
-                <Link href="/" className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                    <ArrowLeft className="text-slate-500" />
-                </Link>
+                <div className="flex items-center gap-4">
+                    <Link href="/" className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                        <ArrowLeft className="text-slate-500" />
+                    </Link>
+                    <GameTimer
+                        key={level}
+                        duration={defaultTime}
+                        onTimeUp={() => {
+                            playError();
+                            setMachineState("error");
+                            setTimeout(() => setMachineState("idle"), 1000);
+                        }}
+                        isRunning={phase === "investigate" || phase === "deduce"}
+                    />
+                </div>
                 <div className="font-bold text-slate-600 text-lg tracking-wider">
                     FUNCTION MACHINE <span className="text-indigo-500 ml-2">LVL {level}</span>
                 </div>
@@ -228,6 +243,6 @@ export default function FunctionMachineGame() {
                 </div>
 
             </main>
-        </div>
+        </div >
     );
 }

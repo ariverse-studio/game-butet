@@ -9,6 +9,9 @@ import confetti from "canvas-confetti";
 import GameFooter from "../GameFooter";
 import clsx from "clsx";
 import { useSound } from "../../hooks/useSound";
+import GameTimer from "../GameTimer";
+import { useSettings } from "../../context/SettingsContext";
+import { useCoins } from "../../context/CoinContext";
 
 interface LevelState {
     itemWeight: number;
@@ -20,10 +23,11 @@ interface LevelState {
 }
 
 export default function AlgebraBalanceGame() {
+    const { defaultTime } = useSettings();
+    const { addCoins } = useCoins();
     const [level, setLevel] = useState(1);
     const [gameState, setGameState] = useState<LevelState | null>(null);
     const playClick = useSound("https://cdn.pixabay.com/audio/2025/05/23/audio_ec08d1525d.mp3");
-
 
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
@@ -72,12 +76,12 @@ export default function AlgebraBalanceGame() {
         if (status === "wrong") {
             // Reset status to allow checking again
             setStatus("idle");
-            // Optionally clear selection? Let's keep it to allow quick change
             return;
         }
 
         if (selectedOption === gameState.itemWeight) {
             setStatus("correct");
+            addCoins(20); // Reward
             confetti({
                 particleCount: 100,
                 spread: 70,
@@ -98,9 +102,17 @@ export default function AlgebraBalanceGame() {
         <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col pb-24">
             {/* Header */}
             <div className="p-6 flex justify-between items-center bg-white shadow-sm sticky top-0 z-40">
-                <Link href="/" className="p-3 bg-slate-100 rounded-full hover:bg-slate-200 transition-all">
-                    <ArrowLeft className="text-slate-600" />
-                </Link>
+                <div className="flex items-center gap-4">
+                    <Link href="/" className="p-3 bg-slate-100 rounded-full hover:bg-slate-200 transition-all">
+                        <ArrowLeft className="text-slate-600" />
+                    </Link>
+                    <GameTimer
+                        key={level}
+                        duration={defaultTime}
+                        onTimeUp={() => setStatus("wrong")}
+                        isRunning={status === "idle"}
+                    />
+                </div>
                 <div className="text-xl font-bold text-slate-600">
                     Level {level}
                 </div>
@@ -161,6 +173,6 @@ export default function AlgebraBalanceGame() {
                 onContinue={handleContinue}
             />
 
-        </div>
+        </div >
     );
 }
