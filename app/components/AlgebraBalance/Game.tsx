@@ -8,6 +8,7 @@ import Weight from "./Weight";
 import confetti from "canvas-confetti";
 import GameFooter from "../GameFooter";
 import clsx from "clsx";
+import { useSound } from "../../hooks/useSound";
 
 interface LevelState {
     itemWeight: number;
@@ -21,6 +22,8 @@ interface LevelState {
 export default function AlgebraBalanceGame() {
     const [level, setLevel] = useState(1);
     const [gameState, setGameState] = useState<LevelState | null>(null);
+    const playClick = useSound("https://cdn.pixabay.com/audio/2025/05/23/audio_ec08d1525d.mp3");
+
 
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
@@ -132,6 +135,7 @@ export default function AlgebraBalanceGame() {
                             key={opt}
                             onClick={() => {
                                 if (status !== 'correct') {
+                                    playClick();
                                     setSelectedOption(opt);
                                     setStatus('idle');
                                 }

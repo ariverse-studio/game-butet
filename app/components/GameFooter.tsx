@@ -22,13 +22,16 @@ export default function GameFooter({
     message
 }: GameFooterProps) {
 
-    const playSuccess = useSound("https://cdn.pixabay.com/audio/2025/06/01/audio_d2ccbb367a.mp3");
+    const playSuccess = useSound("https://cdn.pixabay.com/audio/2021/08/09/audio_7232134569.mp3");
+    const playError = useSound("https://cdn.pixabay.com/audio/2025/05/31/audio_e9d22d9131.mp3");
 
     useEffect(() => {
         if (status === "correct") {
             playSuccess();
+        } else if (status === "wrong") {
+            playError();
         }
-    }, [status, playSuccess]);
+    }, [status, playSuccess, playError]);
 
     return (
         <div className={clsx(

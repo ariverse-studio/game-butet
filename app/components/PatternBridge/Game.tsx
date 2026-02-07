@@ -9,10 +9,13 @@ import Character from "./Character";
 import confetti from "canvas-confetti";
 import GameFooter from "../GameFooter";
 import clsx from "clsx";
+import { useSound } from "../../hooks/useSound";
 
 export default function PatternBridgeGame() {
     const [level, setLevel] = useState(1);
     const [pattern, setPattern] = useState<PatternData | null>(null);
+    const playClick = useSound("https://cdn.pixabay.com/audio/2025/05/23/audio_ec08d1525d.mp3");
+
 
     // Game State
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -147,6 +150,7 @@ export default function PatternBridgeGame() {
                             key={opt}
                             onClick={() => {
                                 if (status !== 'correct') {
+                                    playClick();
                                     setSelectedOption(opt);
                                     if (status === 'wrong') setStatus('idle'); // Reset wrong state explicitly if clicking new option
                                     setCharacterStatus('idle'); // Reset character
