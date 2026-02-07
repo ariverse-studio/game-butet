@@ -10,12 +10,13 @@ import confetti from "canvas-confetti";
 import GameFooter from "../GameFooter";
 import clsx from "clsx";
 import { useSound } from "../../hooks/useSound";
+import { useCoins } from "../../context/CoinContext";
 
 export default function PatternBridgeGame() {
+    const { addCoins } = useCoins();
     const [level, setLevel] = useState(1);
     const [pattern, setPattern] = useState<PatternData | null>(null);
     const playClick = useSound("https://cdn.pixabay.com/audio/2025/05/23/audio_ec08d1525d.mp3");
-
 
     // Game State
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -53,6 +54,7 @@ export default function PatternBridgeGame() {
 
     const handleSuccess = () => {
         setStatus("correct");
+        addCoins(50);
         setCharacterStatus("walking");
         // Animate walking
         let p = 0;

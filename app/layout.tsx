@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google"; // Playful, modern font
+import { Outfit } from "next/font/google";
 import "./globals.css";
+import { CoinProvider } from "./context/CoinContext";
+import Navbar from "./components/Navbar";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -16,7 +18,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={outfit.className}>{children}</body>
+      <body className={outfit.className}>
+        <CoinProvider>
+          <Navbar />
+          {children}
+          <footer className="w-full py-6 text-center text-slate-400 text-sm font-medium border-t border-slate-100 mt-12 bg-slate-50">
+            Made with love by <span className="text-indigo-500">Ariverse Studio</span>
+          </footer>
+        </CoinProvider>
+      </body>
     </html>
   );
 }

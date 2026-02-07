@@ -6,6 +6,7 @@ import { ArrowLeft, RefreshCw, Trophy, Heart } from "lucide-react";
 import Blade from "./Blade";
 import NumberEntity from "./NumberEntity";
 import { AnimatePresence } from "framer-motion";
+import { useCoins } from "../../context/CoinContext";
 
 // --- Game Constants & Helpers ---
 const GRAVITY = 0.2;
@@ -66,6 +67,7 @@ function lineCircleIntersection(
 }
 
 export default function FactorNinjaGame() {
+    const { addCoins } = useCoins();
     const containerRef = useRef<HTMLDivElement>(null);
     const requestRef = useRef<number | null>(null);
     const lastTimeRef = useRef<number | undefined>(undefined);
@@ -92,10 +94,6 @@ export default function FactorNinjaGame() {
             return newPath;
         });
     };
-
-    // Game Logic Functions (defined outside loop to avoid recreation if possible, or inside loop ref)
-    // We use refs for state inside the loop to avoid closure staleness if we used pure callbacks without deps
-    // But since we are using functional state updates (setEntities(prev => ...)), we are safe.
 
     const handleSlice = (ent: Entity) => {
         const isPrimeNum = isPrime(ent.value);
@@ -131,6 +129,7 @@ export default function FactorNinjaGame() {
         } else {
             // Good Slice!
             setScore((prev) => prev + 10);
+            addCoins(10);
         }
     };
 
@@ -176,7 +175,7 @@ export default function FactorNinjaGame() {
         }
 
         requestRef.current = requestAnimationFrame(gameLoop);
-    }, [gameState]); // Re-create loop if gameState changes? Actually we rely on functional updates mostly.
+    }, [gameState]);
 
     // Collision Detection Effect
     useEffect(() => {
@@ -311,7 +310,7 @@ export default function FactorNinjaGame() {
             {/* Overlays */}
             {gameState === "menu" && (
                 <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/70 text-white backdrop-blur-sm p-4 text-center">
-                    <h1 className="text-6xl sm:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 mb-4 tracking-tighter -rotate-3 drop-shadow-lg">
+                    <h1 className="text-6xl sm:text-8xl font-black text-transparent bg-clip-text bg-linear-to-r from-red-500 to-orange-500 mb-4 tracking-tighter -rotate-3 drop-shadow-lg">
                         FACTOR<br />NINJA
                     </h1>
                     <p className="mb-8 text-xl sm:text-2xl text-slate-200 max-w-lg leading-relaxed">
