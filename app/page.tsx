@@ -44,9 +44,10 @@ export default function Home() {
     },
     {
       title: "Angle Commander",
-      status: "locked" as const,
+      status: "active" as const,
       icon: Compass,
       color: "bg-yellow-500",
+      href: "/angle-commander"
     },
     {
       title: "Shape Slicer",
@@ -56,9 +57,10 @@ export default function Home() {
     },
     {
       title: "Data Detective",
-      status: "locked" as const,
+      status: "active" as const,
       icon: BarChart3,
       color: "bg-indigo-500",
+      href: "/data-detective"
     },
   ];
 
