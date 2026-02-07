@@ -7,6 +7,8 @@ import Blade from "./Blade";
 import NumberEntity from "./NumberEntity";
 import { AnimatePresence } from "framer-motion";
 import { useCoins } from "../../context/CoinContext";
+import GameTimer from "../GameTimer";
+import { useSettings } from "../../context/SettingsContext";
 
 // --- Game Constants & Helpers ---
 const GRAVITY = 0.2;
@@ -68,6 +70,7 @@ function lineCircleIntersection(
 
 export default function FactorNinjaGame() {
     const { addCoins } = useCoins();
+    const { defaultTime } = useSettings();
     const containerRef = useRef<HTMLDivElement>(null);
     const requestRef = useRef<number | null>(null);
     const lastTimeRef = useRef<number | undefined>(undefined);
@@ -257,13 +260,20 @@ export default function FactorNinjaGame() {
             onPointerDown={handlePointerMove}
         >
             {/* Background UI */}
-            <div className="absolute top-4 left-4 z-10 flex gap-4 text-white font-bold text-2xl drop-shadow-md">
+            <div className="absolute top-4 left-4 z-10 flex gap-4 text-white font-bold text-2xl drop-shadow-md items-center">
                 <Link href="/" className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
                     <ArrowLeft />
                 </Link>
                 <div className="flex items-center gap-2 select-none">
                     <Trophy className="text-yellow-400" /> {score}
                 </div>
+                {gameState === "playing" && (
+                    <GameTimer
+                        duration={defaultTime}
+                        onTimeUp={() => setGameState("gameover")}
+                        isRunning={gameState === "playing"}
+                    />
+                )}
             </div>
 
             <div className="absolute top-4 right-4 z-10 flex gap-1">

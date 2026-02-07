@@ -11,9 +11,12 @@ import GameFooter from "../GameFooter";
 import clsx from "clsx";
 import { useSound } from "../../hooks/useSound";
 import { useCoins } from "../../context/CoinContext";
+import GameTimer from "../GameTimer";
+import { useSettings } from "../../context/SettingsContext";
 
 export default function PatternBridgeGame() {
     const { addCoins } = useCoins();
+    const { defaultTime } = useSettings();
     const [level, setLevel] = useState(1);
     const [pattern, setPattern] = useState<PatternData | null>(null);
     const playClick = useSound("https://cdn.pixabay.com/audio/2025/05/23/audio_ec08d1525d.mp3");
@@ -103,9 +106,17 @@ export default function PatternBridgeGame() {
         <div className="min-h-screen bg-sky-100 font-sans text-slate-800 flex flex-col pb-24 overflow-hidden">
             {/* Header */}
             <div className="p-6 flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-40">
-                <Link href="/" className="p-3 bg-white rounded-full hover:shadow-md transition-all">
-                    <ArrowLeft className="text-slate-600" />
-                </Link>
+                <div className="flex items-center gap-4">
+                    <Link href="/" className="p-3 bg-white rounded-full hover:shadow-md transition-all">
+                        <ArrowLeft className="text-slate-600" />
+                    </Link>
+                    <GameTimer
+                        key={level} // Reset on level change
+                        duration={defaultTime}
+                        onTimeUp={handleFail}
+                        isRunning={status === "idle"}
+                    />
+                </div>
                 <div className="text-xl font-bold text-slate-600">
                     Level {level}
                 </div>
