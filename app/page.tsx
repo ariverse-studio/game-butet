@@ -37,9 +37,10 @@ export default function Home() {
     },
     {
       title: "Function Machine",
-      status: "locked" as const,
+      status: "active" as const,
       icon: Cpu,
       color: "bg-purple-500",
+      href: "/function-machine"
     },
     {
       title: "Angle Commander",
