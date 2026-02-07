@@ -30,9 +30,10 @@ export default function Home() {
     },
     {
       title: "Algebra Balance",
-      status: "locked" as const,
+      status: "active" as const,
       icon: Scale,
       color: "bg-green-500",
+      href: "/algebra-balance",
     },
     {
       title: "Function Machine",

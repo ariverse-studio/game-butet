@@ -4,6 +4,7 @@ export interface PatternData {
     sequence: (number | null)[];
     missingIndex: number;
     correctAnswer: number;
+    missingNumber: number; // Added alias for compatibility
     options: number[];
     rule: string; // Description of the rule (e.g., "+ 2")
 }
@@ -84,6 +85,7 @@ export function generatePattern(level: number): PatternData {
         sequence: displaySequence,
         missingIndex,
         correctAnswer,
+        missingNumber: correctAnswer, // Added alias
         options: Array.from(options).sort((a, b) => a - b),
         rule
     };
