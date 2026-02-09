@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Coins, Info, Settings } from "lucide-react";
+import { Coins, Info, Settings, FlaskConical } from "lucide-react";
 import { useCoins } from "../context/CoinContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -24,6 +24,9 @@ export default function Navbar() {
             </Link>
 
             <div className="flex items-center gap-4">
+                <Link href="/simulation" className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-colors" title="Simulation Sandbox">
+                    <FlaskConical size={20} />
+                </Link>
                 <Link href="/about" className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors" title="About">
                     <Info size={20} />
                 </Link>

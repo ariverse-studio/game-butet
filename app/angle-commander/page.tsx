@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import AngleCommanderGame from "../components/AngleCommander/Game";
+import AngleMaster from "../components/AngleMaster/AngleMaster";
 
 export const metadata: Metadata = {
-    title: "Angle Commander | Math Masters",
-    description: "Master your estimation skills!",
+    title: "Angle Master | Math Masters",
+    description: "Master angle recognition with visual geometry quizzes!",
 };
 
-export default function AngleCommanderPage() {
-    return <AngleCommanderGame />;
+export default function AngleMasterPage() {
+    return <AngleMaster />;
 }

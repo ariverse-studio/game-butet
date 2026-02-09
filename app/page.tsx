@@ -1,67 +1,34 @@
 "use client";
 
-import {
-  Sword,
-  Shapes,
-  Scale,
-  Cpu,
-  Compass,
-  Scissors,
-  BarChart3,
-  Dna
-} from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Scissors } from "lucide-react";
 import GameCard from "./components/GameCard";
+import GameInstructions from "./components/GameInstructions";
+import { GAMES_DATA, GameMetadata } from "./data/gamesData";
 
 export default function Home() {
-  const games = [
+  const router = useRouter();
+  const [selectedGame, setSelectedGame] = useState<GameMetadata | null>(null);
+
+  const activeGames = GAMES_DATA.map(game => ({
+    ...game,
+    status: "active" as const
+  }));
+
+  // Add locked games if necessary
+  const allGames = [
+    ...activeGames,
     {
-      title: "Factor Ninja",
-      status: "active" as const,
-      icon: Sword,
-      color: "bg-red-500",
-      href: "/factor-ninja"
-    },
-    {
-      title: "The Pattern Bridge",
-      status: "active" as const,
-      icon: Dna,
-      color: "bg-blue-500",
-      href: "/pattern-bridge"
-    },
-    {
-      title: "Algebra Balance",
-      status: "active" as const,
-      icon: Scale,
-      color: "bg-green-500",
-      href: "/algebra-balance",
-    },
-    {
-      title: "Function Machine",
-      status: "active" as const,
-      icon: Cpu,
-      color: "bg-purple-500",
-      href: "/function-machine"
-    },
-    {
-      title: "Angle Commander",
-      status: "active" as const,
-      icon: Compass,
-      color: "bg-yellow-500",
-      href: "/angle-commander"
-    },
-    {
+      id: "shape-slicer",
       title: "Shape Slicer",
       status: "locked" as const,
       icon: Scissors,
       color: "bg-pink-500",
-    },
-    {
-      title: "Data Detective",
-      status: "active" as const,
-      icon: BarChart3,
-      color: "bg-indigo-500",
-      href: "/data-detective"
-    },
+      href: "/#",
+      design: "",
+      howToPlay: ""
+    }
   ];
 
   return (
@@ -77,17 +44,28 @@ export default function Home() {
         </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {games.map((game) => (
+          {allGames.map((game) => (
             <GameCard
-              key={game.title}
+              key={game.id}
               title={game.title}
               status={game.status}
               icon={game.icon}
               color={game.color}
               href={game.href}
+              onClick={game.status !== "locked" ? () => setSelectedGame(game as GameMetadata) : undefined}
             />
           ))}
         </div>
+
+        <GameInstructions
+          game={selectedGame}
+          onClose={() => setSelectedGame(null)}
+          onStart={() => {
+            if (selectedGame) {
+              router.push(selectedGame.href);
+            }
+          }}
+        />
       </div>
     </main>
   );
