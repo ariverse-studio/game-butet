@@ -29,6 +29,7 @@ export interface SimulationCard {
     type: TransactionType;
     category: TransactionCategory;
     amount: number;
+    expAmount?: number; // Optional EXP reward
     description: string;
 }
 

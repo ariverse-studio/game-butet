@@ -12,19 +12,26 @@ import { toast } from "react-hot-toast"; // We'll implement a custom one or use 
 export interface Mission {
     id: string;
     title: string;
+    description?: string;
     type: 'daily' | 'weekly' | 'achievement';
     rewardXP: number;
     rewardCoins: number;
     isClaimed: boolean;
+    // New fields for simulator
+    logicBuilder?: string;
+    target?: string;
+    rewardLevel?: 'Low' | 'Medium' | 'High';
 }
 
 export interface Badge {
     id: string;
     name: string;
-    tier: 'common' | 'rare' | 'legendary';
-    icon: string; // lucide icon name or image path
+    tier: 'common' | 'rare' | 'epic' | 'legendary' | 'mythic';
+    color?: string; // Dominant color
+    icon: string; // lucide icon name or image path/concept
     isUnlocked: boolean;
     condition: string;
+    trigger?: string; // For design purposes
 }
 
 export interface AvatarStats {
@@ -49,6 +56,12 @@ interface GamificationContextType {
     addXP: (amount: number) => void;
     unlockBadge: (id: string) => void;
     completeMission: (id: string) => void;
+
+    // Custom Data Management
+    addMission: (mission: Omit<Mission, 'id' | 'isClaimed'>) => void;
+    deleteMission: (id: string) => void;
+    addBadge: (badge: Omit<Badge, 'id' | 'isUnlocked'>) => void;
+    deleteBadge: (id: string) => void;
 
     // Debug / God Mode
     debugSetLevel: (lvl: number) => void;
@@ -176,6 +189,36 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
         }));
     };
 
+    const addMission = (mission: Omit<Mission, 'id' | 'isClaimed'>) => {
+        const newMission: Mission = {
+            ...mission,
+            id: `m-${Date.now()}`,
+            isClaimed: false
+        };
+        setMissions(prev => [newMission, ...prev]);
+        notify(`New Mission Created: ${mission.title}`, 'success');
+    };
+
+    const deleteMission = (id: string) => {
+        setMissions(prev => prev.filter(m => m.id !== id));
+        notify("Mission Deleted", 'info');
+    };
+
+    const addBadge = (badge: Omit<Badge, 'id' | 'isUnlocked'>) => {
+        const newBadge: Badge = {
+            ...badge,
+            id: `b-${Date.now()}`,
+            isUnlocked: false
+        };
+        setBadges(prev => [newBadge, ...prev]);
+        notify(`New Badge Designed: ${badge.name}`, 'success');
+    };
+
+    const deleteBadge = (id: string) => {
+        setBadges(prev => prev.filter(b => b.id !== id));
+        notify("Badge Deleted", 'info');
+    };
+
     // Debug Actions
     const debugSetLevel = (lvl: number) => setLevel(lvl);
     const debugSetXP = (xp: number) => setCurrentXP(xp); // Doesn't trigger level up logic, just sets raw
@@ -201,6 +244,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
             level, currentXP, maxXP, avatarStats,
             missions, badges,
             addXP, unlockBadge, completeMission,
+            addMission, deleteMission, addBadge, deleteBadge,
             debugSetLevel, debugSetXP, resetAllProgress, updateAvatarStat,
             notifications, dismissNotification
         }}>

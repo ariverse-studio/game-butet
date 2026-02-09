@@ -1,4 +1,4 @@
-import { LucideIcon, Sword, Dna, Scale, Cpu, Compass, BarChart3 } from "lucide-react";
+import { LucideIcon, Sword, Dna, Scale, Cpu, Compass, BarChart3, Zap } from "lucide-react";
 
 export interface GameMetadata {
     id: string;
@@ -64,5 +64,23 @@ export const GAMES_DATA: GameMetadata[] = [
         href: "/data-detective",
         design: "Data Detective turns you into a statistician. You'll analyze graphs, charts, and raw data to find hidden insights and answer questions.",
         howToPlay: "1. Examine the provided chart or graph (Bar, Line, or Pie).\n2. Read the question carefully.\n3. Perform calculations if necessary (Mean, Median, Mode, or Range).\n4. Select the correct answer based on the data provided."
+    },
+    {
+        id: "vector-valley",
+        title: "Vector Valley",
+        icon: Zap,
+        color: "bg-indigo-600",
+        href: "/simulation/vector-valley",
+        design: "Vector Valley is a physics-based educational game that teaches the difference between scalar and vector quantities. It combines conceptual sorting with practical vector planning on a coordinate grid.",
+        howToPlay: "1. **Stage 1 (Sorting)**: Classify physical quantities as either 'Scalar' (magnitude only) or 'Vector' (magnitude + direction).\n2. **Stage 2 (Mission)**: Plan a path for your robot by dragging to create vector arrows.\n3. Watch how X and Y components combine to create a resultant movement.\n4. Avoid obstacles to reach the target!"
+    },
+    {
+        id: "math-match",
+        title: "Math Match",
+        icon: Zap,
+        color: "bg-red-500",
+        href: "/simulation/math-match",
+        design: "Math Match is a fast-paced arithmetic game with a Tinder-style swipe mechanic. It's designed to build rapid calculation speed and improve focus through immediate decision-making.",
+        howToPlay: "1. **Swipe Right**: If the equation is **CORRECT**.\n2. **Swipe Left**: If the equation is **INCORRECT**.\n3. Build a **Combo** by getting 3 correct answers in a row to earn double points.\n4. Don't let your lives (hearts) run out!"
     }
 ];

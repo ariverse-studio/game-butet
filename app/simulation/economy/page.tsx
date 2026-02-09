@@ -14,10 +14,15 @@ import {
     AlertCircle,
     CheckCircle2,
     DollarSign,
-    ArrowRight
+    ArrowRight,
+    Puzzle,
+    Award
 } from "lucide-react";
+import clsx from "clsx";
 import { useEconomy, TransactionType, TransactionCategory, SimulationCard, Transaction } from "../../context/EconomyContext";
+import { useGamification, Mission } from "../../context/GamificationContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { Gauge, Trophy, Star, ChevronRight } from "lucide-react";
 
 interface DonutSegment {
     label: string;
@@ -238,11 +243,22 @@ export default function EconomyDashboard() {
         importData
     } = useEconomy();
 
-    // Creator States
-    const [itemType, setItemType] = useState<TransactionType>("INCOME");
-    const [itemCategory, setItemCategory] = useState<TransactionCategory>("LEARNING");
-    const [itemAmount, setItemAmount] = useState<string>("");
-    const [itemDescription, setItemDescription] = useState<string>("");
+    const {
+        level,
+        currentXP,
+        maxXP,
+        addXP,
+        missions,
+        completeMission,
+        resetAllProgress: resetProgression
+    } = useGamification();
+
+    // Level Requirements List (1-20)
+    const levelRequirements = Array.from({ length: 20 }, (_, i) => {
+        const lvl = i + 1;
+        const req = Math.floor(100 * Math.pow(1.1, lvl - 1));
+        return { level: lvl, exp: req };
+    });
 
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -258,43 +274,21 @@ export default function EconomyDashboard() {
         }, 3000);
     };
 
-    const handleCreateCard = (e: React.FormEvent) => {
-        e.preventDefault();
-        const amount = parseFloat(itemAmount);
-        if (isNaN(amount) || amount <= 0) {
-            showMessage("Please enter a valid amount", "error");
-            return;
-        }
+    const handleExecuteMission = (mission: Mission) => {
+        if (mission.isClaimed) return;
 
-        const description = itemDescription.trim() || getRandomDesc(itemCategory);
-
-        addSimCard({
-            type: itemType,
-            category: itemCategory,
-            amount,
-            description
-        });
-
-        setItemAmount("");
-        setItemDescription("");
-        showMessage(`${itemCategory.toLowerCase()} card created!`, "success");
-    };
-
-    const handleExecuteAction = (card: SimulationCard) => {
-        if (card.type === "EXPENSE" && balance < card.amount) {
-            showMessage("Insufficient balance to perform this action!", "error");
-            return;
-        }
-
-        const name = card.description;
+        // Add to economy context for charts
         addTransaction({
-            type: card.type,
-            category: card.category,
-            amount: card.amount,
-            description: `${card.type === 'INCOME' ? 'Completed' : 'Purchased'} ${name}`
+            type: "INCOME",
+            category: "MISSION",
+            amount: mission.rewardCoins,
+            description: `Completed Mission: ${mission.title}`
         });
 
-        showMessage(`${name} recorded`, "success");
+        // Trigger gamification logic
+        completeMission(mission.id);
+
+        showMessage(`${mission.title} completed! (+${mission.rewardXP} XP)`, "success");
     };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -315,8 +309,8 @@ export default function EconomyDashboard() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Economy Simulator</h1>
-                        <p className="text-slate-500 font-medium">Create cards and click them to simulate game activities</p>
+                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Progression Simulator</h1>
+                        <p className="text-slate-500 font-medium">Test mission balancing, XP curves, and economic growth in real-time.</p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -327,174 +321,122 @@ export default function EconomyDashboard() {
                             <Upload size={18} /> Import
                         </button>
                         <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".json" />
-                        <button onClick={clearData} className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold border border-red-100 hover:bg-red-100 transition">
-                            <RotateCcw size={18} /> Reset
+                        <button onClick={() => { clearData(); resetProgression(); }} className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold border border-red-100 hover:bg-red-100 transition">
+                            <RotateCcw size={18} /> Reset All
                         </button>
                     </div>
                 </div>
 
-                <AnimatePresence>
-                    {(error || success) && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className={`mb-6 p-4 rounded-2xl flex items-center gap-3 border shadow-sm ${error ? "bg-red-50 border-red-200 text-red-700" : "bg-green-50 border-green-200 text-green-700"
-                                }`}
-                        >
-                            {error ? <AlertCircle size={20} /> : <CheckCircle2 size={20} />}
-                            <span className="font-bold">{error || success}</span>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-6 pointer-events-none">
+                    <AnimatePresence>
+                        {(error || success) && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -40, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                                className={`p-4 rounded-3xl flex items-center gap-3 border shadow-2xl pointer-events-auto ${error ? "bg-red-50 border-red-200 text-red-700 shadow-red-100" : "bg-white border-slate-100 text-slate-800 shadow-indigo-100"
+                                    }`}
+                            >
+                                <div className={`p-2 rounded-xl ${error ? "bg-red-100" : "bg-indigo-50"}`}>
+                                    {error ? <AlertCircle size={20} className="text-red-600" /> : <CheckCircle2 size={20} className="text-indigo-600" />}
+                                </div>
+                                <span className="font-black text-sm tracking-tight">{error || success}</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* Column 1: Card Creator */}
+                    {/* Column 1: Info & Navigation */}
                     <div className="lg:col-span-3 space-y-6">
-                        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm sticky top-6">
-                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <Plus className="text-blue-500" /> Card Creator
-                            </h2>
-                            <form onSubmit={handleCreateCard} className="space-y-6">
-                                <div>
-                                    <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest">Card Name (Optional)</label>
-                                    <input
-                                        type="text"
-                                        value={itemDescription}
-                                        onChange={(e) => setItemDescription(e.target.value)}
-                                        placeholder="Auto-generated if empty"
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 placeholder:text-slate-300 transition-all text-sm"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest">Type</label>
-                                    <div className="flex gap-2 p-1 bg-slate-50 rounded-2xl">
-                                        <button
-                                            type="button"
-                                            onClick={() => { setItemType("INCOME"); setItemCategory("LEARNING"); }}
-                                            className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${itemType === "INCOME" ? "bg-white text-green-600 shadow-sm" : "text-slate-400"}`}
-                                        >Income</button>
-                                        <button
-                                            type="button"
-                                            onClick={() => { setItemType("EXPENSE"); setItemCategory("AVATAR"); }}
-                                            className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${itemType === "EXPENSE" ? "bg-white text-red-600 shadow-sm" : "text-slate-400"}`}
-                                        >Expense</button>
+                        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm sticky top-6">
+                            <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Quick Links</h2>
+                            <div className="space-y-3">
+                                <Link href="/simulation/mission" className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-indigo-50 hover:border-indigo-100 transition-all group">
+                                    <div className="flex items-center gap-3">
+                                        <Puzzle size={18} className="text-indigo-500" />
+                                        <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-700">Mission Lab</span>
                                     </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest">Category</label>
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {((itemType === "INCOME" ? ["LEARNING", "MINIGAME", "MISSION"] : ["AVATAR", "UNLOCK_GAME"]) as TransactionCategory[]).map((cat) => (
-                                            <button
-                                                key={cat}
-                                                type="button"
-                                                onClick={() => setItemCategory(cat)}
-                                                className={`py-3 px-4 rounded-2xl text-xs font-black uppercase transition text-left flex items-center justify-between ${itemCategory === cat ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                                                    }`}
-                                            >
-                                                {cat.replace("_", " ")}
-                                                {itemCategory === cat && <CheckCircle2 size={16} />}
-                                            </button>
-                                        ))}
+                                    <ChevronRight size={14} className="text-slate-300 group-hover:text-indigo-400" />
+                                </Link>
+                                <Link href="/simulation/badge" className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-rose-50 hover:border-rose-100 transition-all group">
+                                    <div className="flex items-center gap-3">
+                                        <Award size={18} className="text-rose-500" />
+                                        <span className="text-sm font-bold text-slate-700 group-hover:text-rose-700">Badge Lab</span>
                                     </div>
-                                </div>
+                                    <ChevronRight size={14} className="text-slate-300 group-hover:text-rose-400" />
+                                </Link>
+                            </div>
 
-                                <div>
-                                    <label className="block text-xs font-black text-slate-400 mb-2 uppercase tracking-widest">Coin Amount</label>
-                                    <div className="relative">
-                                        <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                                        <input
-                                            type="number"
-                                            value={itemAmount}
-                                            onChange={(e) => setItemAmount(e.target.value)}
-                                            placeholder="0"
-                                            className="w-full pl-10 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-black text-xl text-slate-800"
-                                        />
-                                    </div>
+                            <div className="mt-12">
+                                <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Manual XP</h2>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button onClick={() => addXP(50)} className="py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase hover:bg-indigo-100">+50 XP</button>
+                                    <button onClick={() => addXP(200)} className="py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase hover:bg-indigo-100">+200 XP</button>
                                 </div>
-
-                                <button type="submit" className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-slate-800 transition shadow-xl">
-                                    Create Action
-                                </button>
-                            </form>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Column 2: Action Center (The simulation hub) */}
+                    {/* Column 2: Action Center */}
                     <div className="lg:col-span-5 space-y-10">
                         <div>
                             <div className="flex items-center justify-between mb-8">
-                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Action Center</h2>
-                                <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest">{simCards.length} Tools</span>
+                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Active Missions</h2>
+                                <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest">{missions.length} Playable</span>
                             </div>
 
-                            {simCards.length === 0 ? (
+                            {missions.length === 0 ? (
                                 <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center text-slate-400">
-                                    <Wallet className="mx-auto mb-4 opacity-30" size={48} />
-                                    <p className="font-bold">No action cards yet.</p>
-                                    <p className="text-sm px-8">Create some learning or store items on the left to start simulating!</p>
+                                    <Puzzle className="mx-auto mb-4 opacity-30" size={48} />
+                                    <p className="font-bold">No missions available.</p>
+                                    <p className="text-sm px-8">Go to the Mission Lab to design some quests first!</p>
+                                    <Link href="/simulation/mission" className="inline-block mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-widest">Open Mission Lab</Link>
                                 </div>
                             ) : (
-                                <div className="space-y-10">
-                                    {(["LEARNING", "MINIGAME", "MISSION", "AVATAR", "UNLOCK_GAME"] as TransactionCategory[]).map(cat => {
-                                        const cardsInCategory = simCards.filter(c => c.category === cat);
-                                        if (cardsInCategory.length === 0) return null;
-
-                                        return (
-                                            <div key={cat} className="space-y-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-px flex-1 bg-slate-100" />
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{cat.replace("_", " ")}</span>
-                                                    <div className="h-px flex-1 bg-slate-100" />
-                                                </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                    <AnimatePresence mode="popLayout">
-                                                        {cardsInCategory.map((card) => (
-                                                            <motion.div
-                                                                key={card.id}
-                                                                layout
-                                                                initial={{ scale: 0.9, opacity: 0 }}
-                                                                animate={{ scale: 1, opacity: 1 }}
-                                                                exit={{ scale: 0.9, opacity: 0 }}
-                                                                className="relative group"
-                                                            >
-                                                                <button
-                                                                    onClick={() => handleExecuteAction(card)}
-                                                                    className={`w-full p-5 rounded-3xl text-left transition-all border-b-4 active:border-b-0 active:translate-y-1 shadow-md ${card.type === "INCOME"
-                                                                        ? "bg-white border-green-500 hover:bg-green-50"
-                                                                        : "bg-white border-red-500 hover:bg-red-50"
-                                                                        }`}
-                                                                >
-                                                                    <div className="flex justify-between items-start mb-4">
-                                                                        <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${card.type === "INCOME" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                                                                            }`}>
-                                                                            +{card.amount} Coins
-                                                                        </span>
-                                                                        {card.type === "INCOME" ? <TrendingUp className="text-green-300" size={20} /> : <TrendingDown className="text-red-300" size={20} />}
-                                                                    </div>
-                                                                    <div className="text-lg font-black text-slate-800 leading-tight">
-                                                                        {card.description}
-                                                                    </div>
-                                                                    <div className="text-[10px] font-bold text-indigo-400 mt-2 uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                        Execute <ArrowRight size={10} />
-                                                                    </div>
-                                                                </button>
-
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); removeSimCard(card.id); }}
-                                                                    className="absolute -top-2 -right-2 p-1.5 bg-slate-900 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
-                                                                >
-                                                                    <Plus size={14} className="rotate-45" />
-                                                                </button>
-                                                            </motion.div>
-                                                        ))}
-                                                    </AnimatePresence>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                <div className="space-y-6">
+                                    <AnimatePresence mode="popLayout">
+                                        {missions.map((mission) => (
+                                            <motion.div
+                                                key={mission.id}
+                                                layout
+                                                initial={{ scale: 0.95, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                exit={{ scale: 0.95, opacity: 0 }}
+                                                className="relative group"
+                                            >
+                                                <button
+                                                    onClick={() => handleExecuteMission(mission)}
+                                                    disabled={mission.isClaimed}
+                                                    className={clsx(
+                                                        "w-full p-6 rounded-[2rem] text-left transition-all border-b-4 active:border-b-0 active:translate-y-1 shadow-md mb-2",
+                                                        mission.isClaimed ? "bg-slate-50 border-slate-200 grayscale opacity-50" : "bg-white border-green-500 hover:bg-green-50"
+                                                    )}
+                                                >
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <div className="flex gap-2">
+                                                            <span className="text-[10px] font-black uppercase px-2 py-1 rounded-lg bg-green-100 text-green-700">
+                                                                +{mission.rewardCoins} Coins
+                                                            </span>
+                                                            <span className="text-[10px] font-black uppercase px-2 py-1 rounded-lg bg-indigo-100 text-indigo-700">
+                                                                +{mission.rewardXP} XP
+                                                            </span>
+                                                        </div>
+                                                        <Trophy className={clsx(mission.isClaimed ? "text-slate-300" : "text-amber-400")} size={20} />
+                                                    </div>
+                                                    <div className="text-xl font-black text-slate-800 leading-tight">
+                                                        {mission.title}
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 mt-1">{mission.description || 'Simulate this mission'}</p>
+                                                    {!mission.isClaimed && (
+                                                        <div className="text-[10px] font-bold text-indigo-400 mt-4 uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            Simulate Completion <ArrowRight size={10} />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
                                 </div>
                             )}
                         </div>
@@ -502,7 +444,7 @@ export default function EconomyDashboard() {
                         {/* Recent Activity Mini Log */}
                         <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
                             <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <History size={20} className="text-indigo-500" /> Recent Activity
+                                <History size={20} className="text-indigo-500" /> Progression History
                             </h3>
                             <div className="space-y-3">
                                 {transactions.slice(0, 5).map(tx => (
@@ -521,20 +463,76 @@ export default function EconomyDashboard() {
                                         </div>
                                     </div>
                                 ))}
-                                {transactions.length === 0 && <p className="text-center text-slate-400 italic py-4 text-sm">No recorded data yet.</p>}
+                                {transactions.length === 0 && <p className="text-center text-slate-400 italic py-4 text-sm">Waiting for simulation data...</p>}
                             </div>
                         </div>
                     </div>
 
-                    {/* Column 3: Stats & History */}
+                    {/* Column 3: Stats & Requirements */}
                     <div className="lg:col-span-4 space-y-8">
-                        <div className="flex gap-4">
+                        <div className="flex flex-col gap-4">
                             <StatCard
-                                title="Balance"
+                                title="Currency Pool"
                                 value={balance.toLocaleString()}
                                 icon={Wallet}
                                 color="bg-indigo-600 shadow-indigo-200"
                             />
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-2 bg-indigo-100 rounded-lg">
+                                            <Trophy size={16} className="text-indigo-600" />
+                                        </div>
+                                        <span className="text-slate-500 text-sm font-medium">Developer Level</span>
+                                    </div>
+                                    <span className="text-2xl font-black text-slate-900">Lvl {level}</span>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <span>XP Progress</span>
+                                        <span>{Math.floor(currentXP)} / {maxXP} XP</span>
+                                    </div>
+                                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${(currentXP / maxXP) * 100}%` }}
+                                            className="h-full bg-indigo-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Level Requirements List */}
+                        <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <Gauge size={18} className="text-indigo-500" /> Requirements Matrix
+                            </h3>
+                            <div className="space-y-1 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                {levelRequirements.map((req) => (
+                                    <div
+                                        key={req.level}
+                                        className={clsx(
+                                            "flex items-center justify-between p-3 rounded-2xl transition-colors",
+                                            level === req.level ? "bg-indigo-50 border border-indigo-100" : "hover:bg-slate-50"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={clsx(
+                                                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-black",
+                                                level >= req.level ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400"
+                                            )}>
+                                                {req.level}
+                                            </div>
+                                            <div className="text-xs font-bold text-slate-700">Level {req.level}</div>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-xs font-black text-slate-900">{req.exp.toLocaleString()}</span>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase">XP</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Visual Analytics */}
@@ -597,3 +595,4 @@ export default function EconomyDashboard() {
     );
 }
 
+import Link from "next/link";
