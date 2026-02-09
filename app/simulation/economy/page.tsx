@@ -13,10 +13,19 @@ import {
     History,
     AlertCircle,
     CheckCircle2,
-    DollarSign
+    DollarSign,
+    ArrowRight
 } from "lucide-react";
-import { useEconomy, TransactionType, TransactionCategory, SimulationCard } from "../../context/EconomyContext";
+import { useEconomy, TransactionType, TransactionCategory, SimulationCard, Transaction } from "../../context/EconomyContext";
 import { motion, AnimatePresence } from "framer-motion";
+
+interface DonutSegment {
+    label: string;
+    value: number;
+    color: string;
+    startPercent: number;
+    endPercent: number;
+}
 
 // ============================================
 // HELPERS & CONSTANTS
@@ -60,7 +69,7 @@ interface StatCardProps {
 }
 
 const StatCard = ({ title, value, icon: Icon, color, subValue }: StatCardProps) => (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex-1">
         <div className="flex items-center justify-between mb-2">
             <span className="text-slate-500 text-sm font-medium">{title}</span>
             <div className={`p-2 rounded-lg ${color}`}>
@@ -75,6 +84,144 @@ const StatCard = ({ title, value, icon: Icon, color, subValue }: StatCardProps) 
         )}
     </div>
 );
+
+// ============================================
+// CHART COMPONENTS
+// ============================================
+
+const DonutChart = ({ data }: { data: { label: string, value: number, color: string }[] }) => {
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+
+    const getCoordinatesForPercent = (percent: number) => {
+        const x = Math.cos(2 * Math.PI * percent);
+        const y = Math.sin(2 * Math.PI * percent);
+        return [x, y];
+    };
+
+    // Calculate segments functionally to avoid reassignment side-effects during render
+    const segments: DonutSegment[] = data.reduce((acc: DonutSegment[], item) => {
+        const prevEndPercent = acc.length > 0 ? acc[acc.length - 1].endPercent : 0;
+        const startPercent = prevEndPercent;
+        const endPercent = total > 0 ? startPercent + (item.value / total) : 0;
+        acc.push({ ...item, startPercent, endPercent });
+        return acc;
+    }, []);
+
+    return (
+        <div className="relative w-full aspect-square max-w-[200px] mx-auto">
+            <svg viewBox="-1 -1 2 2" className="transform -rotate-90 w-full h-full">
+                {segments.map((item, index) => {
+                    const [startX, startY] = getCoordinatesForPercent(item.startPercent);
+                    const [endX, endY] = getCoordinatesForPercent(item.endPercent);
+
+                    const largeArcFlag = (item.endPercent - item.startPercent) > 0.5 ? 1 : 0;
+                    const pathData = total > 0 && item.value > 0 ? [
+                        `M ${startX} ${startY}`,
+                        `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`,
+                        `L 0 0`,
+                    ].join(" ") : "";
+
+                    return (
+                        <motion.path
+                            key={index}
+                            d={pathData}
+                            fill={item.color}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: index * 0.1 }}
+                        />
+                    );
+                })}
+                <circle cx="0" cy="0" r="0.6" fill="white" />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-2xl font-black text-slate-900">{total}</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Income</span>
+            </div>
+        </div>
+    );
+};
+
+const LineChart = ({ transactions }: { transactions: Transaction[] }) => {
+    if (transactions.length < 2) return (
+        <div className="h-40 flex items-center justify-center border-2 border-dashed border-slate-100 rounded-3xl text-slate-300 text-xs font-bold uppercase tracking-widest">
+            Need more history to plot
+        </div>
+    );
+
+    const dataPoints = transactions.slice().reverse().reduce((acc: { val: number, time: number }[], tx) => {
+        const prevBalance = acc.length > 0 ? acc[acc.length - 1].val : 0;
+        acc.push({
+            val: prevBalance + (tx.type === 'INCOME' ? tx.amount : -tx.amount),
+            time: new Date(tx.timestamp).getTime()
+        });
+        return acc;
+    }, []);
+
+    const min = Math.min(...dataPoints.map(d => d.val), 0);
+    const max = Math.max(...dataPoints.map(d => d.val), 100);
+    const range = max - min;
+    const padding = 20;
+    const width = 400;
+    const height = 160;
+
+    const points = dataPoints.map((d, i) => {
+        const x = (i / (dataPoints.length - 1)) * (width - padding * 2) + padding;
+        const y = height - (((d.val - min) / (range || 1)) * (height - padding * 2) + padding);
+        return `${x},${y}`;
+    }).join(" ");
+
+    const areaPoints = `${points} ${width - padding},${height} ${padding},${height}`;
+
+    return (
+        <div className="w-full bg-slate-50/50 rounded-3xl p-4 overflow-hidden border border-slate-100/50">
+            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-40">
+                <defs>
+                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#6366f1" stopOpacity="0.2" />
+                        <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+                    </linearGradient>
+                </defs>
+                <motion.polyline
+                    points={areaPoints}
+                    fill="url(#chartGradient)"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1 }}
+                />
+                <motion.polyline
+                    points={points}
+                    fill="none"
+                    stroke="#6366f1"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 1.5, ease: "easeInOut" }}
+                />
+                {dataPoints.map((d, i) => {
+                    const x = (i / (dataPoints.length - 1)) * (width - padding * 2) + padding;
+                    const y = height - (((d.val - min) / (range || 1)) * (height - padding * 2) + padding);
+                    return (
+                        <motion.circle
+                            key={i}
+                            cx={x}
+                            cy={y}
+                            r="3"
+                            fill="white"
+                            stroke="#6366f1"
+                            strokeWidth="2"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 1 + i * 0.1 }}
+                        />
+                    );
+                })}
+            </svg>
+        </div>
+    );
+};
 
 export default function EconomyDashboard() {
     const {
@@ -95,6 +242,7 @@ export default function EconomyDashboard() {
     const [itemType, setItemType] = useState<TransactionType>("INCOME");
     const [itemCategory, setItemCategory] = useState<TransactionCategory>("LEARNING");
     const [itemAmount, setItemAmount] = useState<string>("");
+    const [itemDescription, setItemDescription] = useState<string>("");
 
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -118,13 +266,17 @@ export default function EconomyDashboard() {
             return;
         }
 
+        const description = itemDescription.trim() || getRandomDesc(itemCategory);
+
         addSimCard({
             type: itemType,
             category: itemCategory,
-            amount
+            amount,
+            description
         });
 
         setItemAmount("");
+        setItemDescription("");
         showMessage(`${itemCategory.toLowerCase()} card created!`, "success");
     };
 
@@ -134,7 +286,7 @@ export default function EconomyDashboard() {
             return;
         }
 
-        const name = getRandomDesc(card.category);
+        const name = card.description;
         addTransaction({
             type: card.type,
             category: card.category,
@@ -205,6 +357,17 @@ export default function EconomyDashboard() {
                             </h2>
                             <form onSubmit={handleCreateCard} className="space-y-6">
                                 <div>
+                                    <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest">Card Name (Optional)</label>
+                                    <input
+                                        type="text"
+                                        value={itemDescription}
+                                        onChange={(e) => setItemDescription(e.target.value)}
+                                        placeholder="Auto-generated if empty"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 placeholder:text-slate-300 transition-all text-sm"
+                                    />
+                                </div>
+
+                                <div>
                                     <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest">Type</label>
                                     <div className="flex gap-2 p-1 bg-slate-50 rounded-2xl">
                                         <button
@@ -260,60 +423,78 @@ export default function EconomyDashboard() {
                     </div>
 
                     {/* Column 2: Action Center (The simulation hub) */}
-                    <div className="lg:col-span-5 space-y-8">
+                    <div className="lg:col-span-5 space-y-10">
                         <div>
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold text-slate-900">Action Center</h2>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{simCards.length} Tools Ready</span>
+                            <div className="flex items-center justify-between mb-8">
+                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Action Center</h2>
+                                <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest">{simCards.length} Tools</span>
                             </div>
 
                             {simCards.length === 0 ? (
                                 <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center text-slate-400">
                                     <Wallet className="mx-auto mb-4 opacity-30" size={48} />
                                     <p className="font-bold">No action cards yet.</p>
-                                    <p className="text-sm">Create some learning or store items on the left to start simulating!</p>
+                                    <p className="text-sm px-8">Create some learning or store items on the left to start simulating!</p>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <AnimatePresence>
-                                        {simCards.map((card) => (
-                                            <motion.div
-                                                key={card.id}
-                                                layout
-                                                initial={{ scale: 0.9, opacity: 0 }}
-                                                animate={{ scale: 1, opacity: 1 }}
-                                                exit={{ scale: 0.9, opacity: 0 }}
-                                                className="relative group"
-                                            >
-                                                <button
-                                                    onClick={() => handleExecuteAction(card)}
-                                                    className={`w-full p-5 rounded-3xl text-left transition-all border-b-4 active:border-b-0 active:translate-y-1 shadow-md ${card.type === "INCOME"
-                                                        ? "bg-white border-green-500 hover:bg-green-50"
-                                                        : "bg-white border-red-500 hover:bg-red-50"
-                                                        }`}
-                                                >
-                                                    <div className="flex justify-between items-start mb-4">
-                                                        <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${card.type === "INCOME" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                                                            }`}>
-                                                            {card.category.replace("_", " ")}
-                                                        </span>
-                                                        {card.type === "INCOME" ? <TrendingUp className="text-green-300" size={20} /> : <TrendingDown className="text-red-300" size={20} />}
-                                                    </div>
-                                                    <div className="text-2xl font-black text-slate-900">
-                                                        {card.type === "INCOME" ? "+" : "-"}{card.amount}
-                                                    </div>
-                                                    <div className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">Click to trigger</div>
-                                                </button>
+                                <div className="space-y-10">
+                                    {(["LEARNING", "MINIGAME", "MISSION", "AVATAR", "UNLOCK_GAME"] as TransactionCategory[]).map(cat => {
+                                        const cardsInCategory = simCards.filter(c => c.category === cat);
+                                        if (cardsInCategory.length === 0) return null;
 
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); removeSimCard(card.id); }}
-                                                    className="absolute -top-2 -right-2 p-1.5 bg-slate-900 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                                                >
-                                                    <Plus size={14} className="rotate-45" />
-                                                </button>
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
+                                        return (
+                                            <div key={cat} className="space-y-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-px flex-1 bg-slate-100" />
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{cat.replace("_", " ")}</span>
+                                                    <div className="h-px flex-1 bg-slate-100" />
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <AnimatePresence mode="popLayout">
+                                                        {cardsInCategory.map((card) => (
+                                                            <motion.div
+                                                                key={card.id}
+                                                                layout
+                                                                initial={{ scale: 0.9, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                exit={{ scale: 0.9, opacity: 0 }}
+                                                                className="relative group"
+                                                            >
+                                                                <button
+                                                                    onClick={() => handleExecuteAction(card)}
+                                                                    className={`w-full p-5 rounded-3xl text-left transition-all border-b-4 active:border-b-0 active:translate-y-1 shadow-md ${card.type === "INCOME"
+                                                                        ? "bg-white border-green-500 hover:bg-green-50"
+                                                                        : "bg-white border-red-500 hover:bg-red-50"
+                                                                        }`}
+                                                                >
+                                                                    <div className="flex justify-between items-start mb-4">
+                                                                        <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${card.type === "INCOME" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                                                                            }`}>
+                                                                            +{card.amount} Coins
+                                                                        </span>
+                                                                        {card.type === "INCOME" ? <TrendingUp className="text-green-300" size={20} /> : <TrendingDown className="text-red-300" size={20} />}
+                                                                    </div>
+                                                                    <div className="text-lg font-black text-slate-800 leading-tight">
+                                                                        {card.description}
+                                                                    </div>
+                                                                    <div className="text-[10px] font-bold text-indigo-400 mt-2 uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        Execute <ArrowRight size={10} />
+                                                                    </div>
+                                                                </button>
+
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); removeSimCard(card.id); }}
+                                                                    className="absolute -top-2 -right-2 p-1.5 bg-slate-900 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
+                                                                >
+                                                                    <Plus size={14} className="rotate-45" />
+                                                                </button>
+                                                            </motion.div>
+                                                        ))}
+                                                    </AnimatePresence>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
@@ -346,62 +527,68 @@ export default function EconomyDashboard() {
                     </div>
 
                     {/* Column 3: Stats & History */}
-                    <div className="lg:col-span-4 space-y-6">
-                        <StatCard
-                            title="Current Balance"
-                            value={balance.toLocaleString()}
-                            icon={Wallet}
-                            color="bg-indigo-600 shadow-indigo-200"
-                        />
+                    <div className="lg:col-span-4 space-y-8">
+                        <div className="flex gap-4">
+                            <StatCard
+                                title="Balance"
+                                value={balance.toLocaleString()}
+                                icon={Wallet}
+                                color="bg-indigo-600 shadow-indigo-200"
+                            />
+                        </div>
 
-                        {/* Visual Breakdown */}
-                        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                            <h3 className="text-lg font-bold text-slate-900 mb-6">Income Mix</h3>
-                            <div className="space-y-6">
-                                {["LEARNING", "MINIGAME", "MISSION"].map(cat => {
-                                    const total = transactions.filter(t => t.category === cat).reduce((sum, t) => sum + t.amount, 0);
-                                    const percent = totalIncome > 0 ? (total / totalIncome) * 100 : 0;
-                                    return (
-                                        <div key={cat}>
-                                            <div className="flex justify-between text-xs font-black uppercase mb-2">
-                                                <span className="text-slate-400">{cat}</span>
-                                                <span className="text-slate-900">{percent.toFixed(0)}%</span>
-                                            </div>
-                                            <div className="w-full bg-slate-50 h-3 rounded-full overflow-hidden">
-                                                <motion.div
-                                                    className="bg-indigo-500 h-full rounded-full"
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: `${percent}%` }}
-                                                    transition={{ duration: 1 }}
-                                                />
-                                            </div>
+                        {/* Visual Analytics */}
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8">
+                            <div>
+                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">Cash Flow Trend</h3>
+                                <LineChart transactions={transactions} />
+                            </div>
+
+                            <div className="pt-8 border-t border-slate-50">
+                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 text-center">Revenue Share</h3>
+                                <DonutChart data={[
+                                    { label: "Learning", value: transactions.filter(t => t.category === "LEARNING").reduce((sum, t) => sum + t.amount, 0), color: "#6366f1" },
+                                    { label: "Minigame", value: transactions.filter(t => t.category === "MINIGAME").reduce((sum, t) => sum + t.amount, 0), color: "#10b981" },
+                                    { label: "Mission", value: transactions.filter(t => t.category === "MISSION").reduce((sum, t) => sum + t.amount, 0), color: "#f59e0b" }
+                                ]} />
+
+                                <div className="grid grid-cols-3 gap-2 mt-8">
+                                    {[
+                                        { label: "LRN", color: "bg-indigo-500" },
+                                        { label: "GAM", color: "bg-green-500" },
+                                        { label: "MSN", color: "bg-amber-500" }
+                                    ].map(item => (
+                                        <div key={item.label} className="flex flex-col items-center gap-1">
+                                            <div className={`w-2 h-2 rounded-full ${item.color}`} />
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{item.label}</span>
                                         </div>
-                                    );
-                                })}
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Full History Redirect Card */}
-                        <div className="bg-slate-900 p-6 rounded-3xl text-white shadow-xl shadow-slate-200">
-                            <h3 className="text-lg font-bold mb-2">Simulation Stats</h3>
+                        {/* Simulation Stats */}
+                        <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl shadow-indigo-200/50 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
+
+                            <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6">Simulation Summary</h3>
                             <div className="space-y-4 my-6">
-                                <div className="flex justify-between items-center text-sm font-medium opacity-60">
-                                    <span>Total Income</span>
-                                    <span>{totalIncome}</span>
+                                <div className="flex justify-between items-center text-sm font-bold">
+                                    <span className="text-slate-500">Total Income</span>
+                                    <span className="text-green-400">+{totalIncome}</span>
                                 </div>
-                                <div className="flex justify-between items-center text-sm font-medium opacity-60">
-                                    <span>Total Spent</span>
-                                    <span>{totalExpense}</span>
+                                <div className="flex justify-between items-center text-sm font-bold">
+                                    <span className="text-slate-500">Total Spent</span>
+                                    <span className="text-red-400">-{totalExpense}</span>
                                 </div>
-                                <div className="h-px bg-white/10" />
-                                <div className="flex justify-between items-center font-bold">
-                                    <span className="text-slate-400">Profit/Loss</span>
-                                    <span className={balance >= 0 ? "text-green-400" : "text-red-400"}>
-                                        {balance >= 0 ? '+' : ''}{balance}
+                                <div className="h-px bg-white/5" />
+                                <div className="flex justify-between items-center text-lg font-black pt-2">
+                                    <span>P/L Status</span>
+                                    <span className={balance >= 0 ? "text-indigo-400" : "text-red-400"}>
+                                        {balance.toLocaleString()}
                                     </span>
                                 </div>
                             </div>
-                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest text-center mt-4">Economy Balance Design Tool v2.2</p>
                         </div>
                     </div>
                 </div>
