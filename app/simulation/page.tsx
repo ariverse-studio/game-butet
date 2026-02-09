@@ -12,7 +12,8 @@ import {
     Settings,
     LayoutDashboard,
     Puzzle,
-    Award
+    Award,
+    Scale
 } from "lucide-react";
 
 const SimulationCard = ({
@@ -101,6 +102,14 @@ export default function SimulationHub() {
             icon: Award,
             color: "bg-gradient-to-br from-rose-500 to-pink-600",
             tag: "Prestige System"
+        },
+        {
+            title: "Level Designer",
+            description: "Balance XP thresholds and growth curves from Level 1 to 99. Test progression pacing and easing.",
+            href: "/simulation/levels",
+            icon: Scale,
+            color: "bg-gradient-to-br from-emerald-500 to-teal-600",
+            tag: "Progression Logic"
         }
     ];
 

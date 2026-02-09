@@ -62,6 +62,8 @@ interface GamificationContextType {
     deleteMission: (id: string) => void;
     addBadge: (badge: Omit<Badge, 'id' | 'isUnlocked'>) => void;
     deleteBadge: (id: string) => void;
+    levelCurve: number[];
+    updateLevelCurve: (newCurve: number[]) => void;
 
     // Debug / God Mode
     debugSetLevel: (lvl: number) => void;
@@ -100,13 +102,11 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
     const [avatarStats, setAvatarStats] = useState<AvatarStats>(INITIAL_AVATAR);
     const [missions, setMissions] = useState<Mission[]>(INITIAL_MISSIONS);
     const [badges, setBadges] = useState<Badge[]>(INITIAL_BADGES);
+    const [levelCurve, setLevelCurve] = useState<number[]>([]); // New state variable
     const [notifications, setNotifications] = useState<{ id: number; message: string; type: 'success' | 'info' }[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
 
-    // Derived State
-    const maxXP = Math.floor(100 * Math.pow(1.1, level - 1));
-
-    // Persistence
+    // Persistence - Load initial data from localStorage
     useEffect(() => {
         const saved = localStorage.getItem("mathMastersGamification");
         if (saved) {
@@ -117,6 +117,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
                 setAvatarStats(parsed.avatarStats || INITIAL_AVATAR);
                 setMissions(parsed.missions || INITIAL_MISSIONS);
                 setBadges(parsed.badges || INITIAL_BADGES);
+                setLevelCurve(parsed.levelCurve || []); // Load levelCurve
             } catch (e) {
                 console.error("Failed to parse gamification data", e);
             }
@@ -124,6 +125,12 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
         setIsLoaded(true);
     }, []);
 
+    // Derived maxXP from curve
+    const maxXP = levelCurve.length >= level
+        ? levelCurve[level - 1]
+        : Math.floor(100 * Math.pow(1.1, level - 1));
+
+    // Persistence - Save to localStorage whenever data changes
     useEffect(() => {
         if (isLoaded) {
             localStorage.setItem("mathMastersGamification", JSON.stringify({
@@ -131,10 +138,11 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
                 currentXP,
                 avatarStats,
                 missions,
-                badges
+                badges,
+                levelCurve // Save levelCurve
             }));
         }
-    }, [level, currentXP, avatarStats, missions, badges, isLoaded]);
+    }, [level, currentXP, avatarStats, missions, badges, levelCurve, isLoaded]);
 
     // Helpers
     const notify = (message: string, type: 'success' | 'info' = 'success') => {
@@ -149,12 +157,17 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
     const attemptLevelUp = (xp: number, lvl: number) => {
         let newXP = xp;
         let newLevel = lvl;
-        let required = Math.floor(100 * Math.pow(1.1, newLevel - 1));
+
+        const getRequired = (l: number) => levelCurve.length >= l
+            ? levelCurve[l - 1]
+            : Math.floor(100 * Math.pow(1.1, l - 1));
+
+        let required = getRequired(newLevel);
 
         while (newXP >= required) {
             newXP -= required;
             newLevel++;
-            required = Math.floor(100 * Math.pow(1.1, newLevel - 1));
+            required = getRequired(newLevel);
             notify(`Level Up! Welcome to Level ${newLevel}`, 'success');
         }
         return { newXP, newLevel };
@@ -219,6 +232,11 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
         notify("Badge Deleted", 'info');
     };
 
+    const updateLevelCurve = (newCurve: number[]) => {
+        setLevelCurve(newCurve);
+        notify("Level Curve Updated", 'success');
+    };
+
     // Debug Actions
     const debugSetLevel = (lvl: number) => setLevel(lvl);
     const debugSetXP = (xp: number) => setCurrentXP(xp); // Doesn't trigger level up logic, just sets raw
@@ -245,6 +263,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
             missions, badges,
             addXP, unlockBadge, completeMission,
             addMission, deleteMission, addBadge, deleteBadge,
+            levelCurve, updateLevelCurve,
             debugSetLevel, debugSetXP, resetAllProgress, updateAvatarStat,
             notifications, dismissNotification
         }}>
