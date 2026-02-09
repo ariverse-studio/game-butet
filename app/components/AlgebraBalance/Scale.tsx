@@ -17,12 +17,12 @@ export default function Scale({ children, reading }: ScaleProps) {
             {/* The Digital Scale Body */}
             <div className="relative flex flex-col items-center">
                 {/* Top Plate */}
-                <div className="w-64 h-4 bg-slate-300 rounded-lg shadow-sm z-10" />
+                <div className="w-48 sm:w-64 h-4 bg-slate-300 rounded-lg shadow-sm z-10" />
 
                 {/* Main Body */}
-                <div className="w-56 h-24 bg-slate-800 rounded-b-xl flex items-center justify-center p-4 shadow-xl border-t-8 border-slate-700">
+                <div className="w-40 sm:w-56 h-20 sm:h-24 bg-slate-800 rounded-b-xl flex items-center justify-center p-3 sm:p-4 shadow-xl border-t-8 border-slate-700">
                     {/* Digital Display */}
-                    <div className="bg-emerald-100 text-emerald-900 font-mono text-4xl px-6 py-2 rounded shadow-inner border-2 border-slate-600 min-w-[120px] text-center">
+                    <div className="bg-emerald-100 text-emerald-900 font-mono text-2xl sm:text-4xl px-4 sm:px-6 py-1 sm:py-2 rounded shadow-inner border-2 border-slate-600 min-w-[100px] sm:min-w-[120px] text-center">
                         {reading}
                     </div>
                 </div>

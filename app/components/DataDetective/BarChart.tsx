@@ -17,7 +17,7 @@ export default function BarChart({ data, onBarClick, correctId, selectedId, game
     const axisMax = Math.ceil(maxValue / 10) * 10 + 20; // Add buffer
 
     return (
-        <div className="w-full h-[300px] flex items-end justify-center gap-4 md:gap-8 p-4 relative bg-white rounded-xl border border-slate-100 shadow-sm">
+        <div className="w-full h-[250px] sm:h-[300px] flex items-end justify-center gap-2 sm:gap-4 md:gap-8 p-2 sm:p-4 relative bg-white rounded-xl border border-slate-100 shadow-sm">
 
             {/* Y-Axis Grid Lines */}
             <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 pb-8 opacity-20">
@@ -29,7 +29,7 @@ export default function BarChart({ data, onBarClick, correctId, selectedId, game
             </div>
 
             {/* Y-Axis Labels */}
-            <div className="absolute left-0 top-0 bottom-8 w-8 flex flex-col justify-between text-xs text-slate-400 font-mono py-4 pointer-events-none">
+            <div className="absolute left-0 top-0 bottom-8 w-6 sm:w-8 flex flex-col justify-between text-[10px] sm:text-xs text-slate-400 font-mono py-4 pointer-events-none">
                 <span>{axisMax}</span>
                 <span>{Math.round(axisMax * 0.75)}</span>
                 <span>{Math.round(axisMax * 0.5)}</span>
@@ -47,7 +47,7 @@ export default function BarChart({ data, onBarClick, correctId, selectedId, game
                     const isWrong = isSelected && !isCorrect;
 
                     return (
-                        <div key={item.id} className="h-full flex flex-col items-center justify-end gap-2 w-full max-w-[60px] cursor-pointer group"
+                        <div key={item.id} className="h-full flex flex-col items-center justify-end gap-1 sm:gap-2 w-full max-w-[60px] cursor-pointer group"
                             onClick={() => onBarClick(item.id, item.value)}
                         >
                             {/* Value Label (Hover) */}
@@ -74,7 +74,7 @@ export default function BarChart({ data, onBarClick, correctId, selectedId, game
                             />
 
                             {/* X-Axis Label */}
-                            <div className="text-slate-500 font-bold text-sm uppercase tracking-wider">
+                            <div className="text-slate-500 font-bold text-[10px] sm:text-sm uppercase tracking-wider text-center truncate w-full">
                                 {item.label}
                             </div>
                         </div>

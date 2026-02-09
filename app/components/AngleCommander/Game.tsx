@@ -9,11 +9,6 @@ import confetti from "canvas-confetti";
 import clsx from "clsx";
 
 // --- Constants ---
-const GAME_WIDTH = 600;
-const GAME_HEIGHT = 600;
-const CENTER = { x: GAME_WIDTH / 2, y: GAME_HEIGHT / 2 };
-const SPAWN_RADIUS = 280;
-const HIT_RADIUS = 30; // Distance from center where game over occurs
 const PROJECTILE_SPEED = 12;
 const ENEMY_BASE_SPEED = 0.5;
 const FIRE_COOLDOWN = 400; // ms
@@ -74,7 +69,7 @@ export default function AngleDefenseGame() {
 
         setEnemies(prev => [
             ...prev,
-            { id, angle, distance: SPAWN_RADIUS, type: "enemy", speed }
+            { id, angle, distance: 100, type: "enemy", speed } // Distance in %
         ]);
     };
 
@@ -111,8 +106,8 @@ export default function AngleDefenseGame() {
         // 2. Move Projectiles
         setProjectiles(prevProps => {
             return prevProps
-                .map(p => ({ ...p, distance: p.distance + p.speed }))
-                .filter(p => p.distance < SPAWN_RADIUS + 50); // Remove if off screen
+                .map(p => ({ ...p, distance: p.distance + (p.speed / 3) }))
+                .filter(p => p.distance < 110); // Remove if off screen
         });
 
         // 3. Move Enemies & Check Collisions
@@ -126,7 +121,7 @@ export default function AngleDefenseGame() {
                 const newDist = enemy.distance - enemy.speed;
 
                 // Check Game Over
-                if (newDist < HIT_RADIUS) {
+                if (newDist < 10) {
                     gameOver = true;
                 }
 
@@ -175,14 +170,14 @@ export default function AngleDefenseGame() {
                     const id = Date.now() + Math.random();
                     const angle = Math.floor(Math.random() * 360);
                     const speed = ENEMY_BASE_SPEED + (currentScore / 1000);
-                    enemiesRef.current.push({ id, angle, distance: SPAWN_RADIUS, type: "enemy", speed });
+                    enemiesRef.current.push({ id, angle, distance: 100, type: "enemy", speed });
                     spawnTimerRef.current = 0;
                 }
 
                 // UPDATE PROJECTILES
                 projectilesRef.current = projectilesRef.current
-                    .map(p => ({ ...p, distance: p.distance + p.speed }))
-                    .filter(p => p.distance < SPAWN_RADIUS + 20);
+                    .map(p => ({ ...p, distance: p.distance + (p.speed / 3) }))
+                    .filter(p => p.distance < 110);
 
                 // UPDATE ENEMIES
                 let gameOver = false;
@@ -193,7 +188,7 @@ export default function AngleDefenseGame() {
                 const hitEnemies = new Set<number>();
                 const hitProjectiles = new Set<number>();
                 const HIT_ANGLE_TOLERANCE = 12; // Degrees
-                const HIT_DIST_TOLERANCE = 20; // Pixels
+                const HIT_DIST_TOLERANCE = 5; // Pixels in %
 
                 projectilesRef.current.forEach(p => {
                     enemiesRef.current.forEach(e => {
@@ -225,7 +220,7 @@ export default function AngleDefenseGame() {
 
                 // Check Game Over
                 enemiesRef.current.forEach(e => {
-                    if (e.distance < HIT_RADIUS) gameOver = true;
+                    if (e.distance < 10) gameOver = true;
                 });
 
                 if (gameOver) {
@@ -289,7 +284,7 @@ export default function AngleDefenseGame() {
             <main className="flex-1 flex flex-col items-center justify-center p-4 relative">
 
                 {/* Game Container */}
-                <div className="relative" style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}>
+                <div className="relative w-full max-w-[600px] aspect-square">
 
                     {/* RADAR BACKGROUND */}
                     <div className="absolute inset-0 rounded-full border border-slate-700/50 overflow-hidden">
@@ -297,15 +292,15 @@ export default function AngleDefenseGame() {
                         {[0, 45, 90, 135].map(deg => (
                             <div
                                 key={deg}
-                                className="absolute top-1/2 left-1/2 w-[100%] h-[1px] bg-slate-800 -translate-x-1/2 -translate-y-1/2"
+                                className="absolute top-1/2 left-1/2 w-full h-px bg-slate-800 -translate-x-1/2 -translate-y-1/2"
                                 style={{ transform: `translate(-50%, -50%) rotate(${deg}deg)` }}
                             />
                         ))}
-                        {[100, 200, 300, 400, 500].map(dia => (
+                        {[20, 40, 60, 80, 100].map(dia => (
                             <div
                                 key={dia}
                                 className="absolute top-1/2 left-1/2 border border-slate-800/50 rounded-full -translate-x-1/2 -translate-y-1/2"
-                                style={{ width: dia, height: dia }}
+                                style={{ width: `${dia}%`, height: `${dia}%` }}
                             />
                         ))}
 
@@ -322,8 +317,8 @@ export default function AngleDefenseGame() {
                             key={p.id}
                             className="absolute w-2 h-2 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.8)]"
                             style={{
-                                top: CENTER.y + Math.sin(p.angle * Math.PI / 180) * p.distance,
-                                left: CENTER.x + Math.cos(p.angle * Math.PI / 180) * p.distance,
+                                top: `${50 + Math.sin(p.angle * Math.PI / 180) * p.distance / 2}%`,
+                                left: `${50 + Math.cos(p.angle * Math.PI / 180) * p.distance / 2}%`,
                                 transform: 'translate(-50%, -50%)' // Center the dot
                             }}
                         />
@@ -333,42 +328,42 @@ export default function AngleDefenseGame() {
                     {enemies.map(e => (
                         <div
                             key={e.id}
-                            className="absolute w-6 h-6 bg-red-500 rounded-full border-2 border-red-300 shadow-md flex items-center justify-center"
+                            className="absolute w-6 h-6 sm:w-8 sm:h-8 bg-red-500 rounded-full border-2 border-red-300 shadow-md flex items-center justify-center"
                             style={{
-                                top: CENTER.y + Math.sin(e.angle * Math.PI / 180) * e.distance,
-                                left: CENTER.x + Math.cos(e.angle * Math.PI / 180) * e.distance,
+                                top: `${50 + Math.sin(e.angle * Math.PI / 180) * e.distance / 2}%`,
+                                left: `${50 + Math.cos(e.angle * Math.PI / 180) * e.distance / 2}%`,
                                 transform: 'translate(-50%, -50%)'
                             }}
                         >
-                            <span className="text-[8px] text-white font-bold opacity-50">{e.angle}°</span>
+                            <span className="text-[6px] sm:text-[8px] text-white font-bold opacity-50">{e.angle}°</span>
                         </div>
                     ))}
 
                     {/* PLAYER TURRET */}
                     <div
-                        className="absolute w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-b-[40px] border-b-indigo-500 blur-[1px] opacity-50"
+                        className="absolute w-0 h-0 border-l-[10px] sm:border-l-[15px] border-l-transparent border-r-[10px] sm:border-r-[15px] border-r-transparent border-b-[30px] sm:border-b-[40px] border-b-indigo-500 blur-[1px] opacity-50"
                         style={{
-                            top: CENTER.y,
-                            left: CENTER.x,
+                            top: '50%',
+                            left: '50%',
                             transform: `translate(-50%, -50%) rotate(${turretAngle + 90}deg)`,
                             transformOrigin: '50% 50% 0px'
                         }}
                     />
                     {/* Active Turret visual */}
                     <div
-                        className="absolute w-12 h-12 flex items-center justify-end"
+                        className="absolute w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-end"
                         style={{
-                            top: CENTER.y - 24,
-                            left: CENTER.x - 24,
-                            transform: `rotate(${turretAngle}deg)`,
+                            top: '50%',
+                            left: '50%',
+                            transform: `translate(-50%, -50%) rotate(${turretAngle}deg)`,
                             transformOrigin: 'center center'
                         }}
                     >
                         {/* Triangle Ship */}
-                        <div className="w-0 h-0 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent border-l-[30px] border-l-cyan-400 relative z-10 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">
+                        <div className="w-0 h-0 border-t-[8px] sm:border-t-[10px] border-t-transparent border-b-[8px] sm:border-b-[10px] border-b-transparent border-l-[25px] sm:border-l-[30px] border-l-cyan-400 relative z-10 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">
                             {/* Guide Line */}
                             {gameState === "playing" && (
-                                <div className="absolute top-1/2 left-0 w-[300px] h-[1px] bg-cyan-500/20 -z-10 -translate-y-1/2 origin-left pointer-events-none" />
+                                <div className="absolute top-1/2 left-0 w-[150px] sm:w-[300px] h-px bg-cyan-500/20 -z-10 -translate-y-1/2 origin-left pointer-events-none" />
                             )}
                         </div>
                     </div>

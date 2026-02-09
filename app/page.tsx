@@ -34,11 +34,11 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-50 p-6 sm:p-12">
       <div className="max-w-6xl mx-auto">
-        <header className="mb-12 text-center">
-          <h1 className="text-5xl sm:text-7xl font-extrabold text-indigo-600 mb-4 tracking-tight drop-shadow-sm">
+        <header className="mb-8 md:mb-12 text-center">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-indigo-600 mb-4 tracking-tight drop-shadow-sm">
             Math Masters
           </h1>
-          <p className="text-xl text-slate-500 font-medium">
+          <p className="text-lg md:text-xl text-slate-500 font-medium">
             Select a game to start your training!
           </p>
         </header>

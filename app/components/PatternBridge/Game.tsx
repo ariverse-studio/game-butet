@@ -133,19 +133,19 @@ export default function PatternBridgeGame() {
                 </div>
 
                 {/* The Scene */}
-                <div className="w-full max-w-4xl h-[400px] relative flex items-center justify-center">
+                <div className="w-full max-w-4xl h-[300px] sm:h-[400px] relative flex items-center justify-center">
 
                     {/* Cliffs */}
-                    <div className="absolute left-0 bottom-20 w-32 h-64 bg-stone-700 rounded-r-3xl" />
-                    <div className="absolute right-0 bottom-20 w-32 h-64 bg-stone-700 rounded-l-3xl" />
+                    <div className="absolute left-0 bottom-10 sm:bottom-20 w-20 sm:w-32 h-48 sm:h-64 bg-stone-700 rounded-r-3xl" />
+                    <div className="absolute right-0 bottom-10 sm:bottom-20 w-20 sm:w-32 h-48 sm:h-64 bg-stone-700 rounded-l-3xl" />
 
                     {/* Bridge */}
-                    <div className="relative z-10 w-full px-20">
+                    <div className="relative z-10 w-full px-12 sm:px-20">
                         <BridgeChain sequence={pattern.sequence} />
                     </div>
 
                     {/* Character */}
-                    <div className="absolute left-10 bottom-[14rem] z-20 pointer-events-none"
+                    <div className="absolute left-10 bottom-[10rem] sm:bottom-[14rem] z-20 pointer-events-none"
                         style={{
                             left: `calc(10% + ${walkProgress * 0.8}%)`,
                             transition: 'left 0.1s linear'

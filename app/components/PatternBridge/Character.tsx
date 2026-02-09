@@ -11,14 +11,14 @@ interface CharacterProps {
 export default function Character({ status, progress }: CharacterProps) {
 
     // Calculate position based on progress
-    // Bridge width assumed approx 600px, start at 0
-    const xOffset = progress * 600;
+    // Calculate position based on progress in %
+    const xOffsetPercent = progress * 80; // Assuming 80% coverage
 
     return (
         <motion.div
             className="absolute z-20 text-indigo-600"
             animate={{
-                x: xOffset,
+                x: `${xOffsetPercent}%`,
                 y: status === "falling" ? 400 : 0,
                 rotate: status === "falling" ? 360 : 0,
                 scale: status === "falling" ? 0 : 1
@@ -39,7 +39,7 @@ export default function Character({ status, progress }: CharacterProps) {
                     animate={status === "walking" ? { y: [0, -10, 0] } : {}}
                     transition={{ repeat: Infinity, duration: 0.3 }}
                 >
-                    <Smile size={64} fill="currentColor" className="text-yellow-400 drop-shadow-md" />
+                    <Smile size={48} fill="currentColor" className="text-yellow-400 sm:size-64 drop-shadow-md" />
                 </motion.div>
 
                 {/* Simple Body */}

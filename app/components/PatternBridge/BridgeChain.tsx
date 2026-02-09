@@ -20,9 +20,9 @@ export default function BridgeChain({ sequence }: BridgeChainProps) {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: idx * 0.1 }}
                     className={clsx(
-                        "w-24 h-24 flex items-center justify-center rounded-lg shadow-xl border-b-8 text-3xl font-bold transition-all",
+                        "w-12 h-12 sm:w-24 sm:h-24 flex items-center justify-center rounded-lg shadow-xl border-b-4 sm:border-b-8 text-xl sm:text-3xl font-bold transition-all",
                         num === null
-                            ? "bg-white/20 border-white/10 text-transparent border-dashed border-4" // Ghost stone
+                            ? "bg-white/20 border-white/10 text-transparent border-dashed border-2 sm:border-4" // Ghost stone
                             : "bg-stone-200 border-stone-400 text-stone-700"
                     )}
                 >

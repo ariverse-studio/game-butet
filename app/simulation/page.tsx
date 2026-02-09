@@ -114,26 +114,26 @@ export default function SimulationHub() {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-8 sm:p-12 md:p-20 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+        <div className="min-h-screen bg-slate-50/50 p-4 sm:p-12 md:p-20 font-sans selection:bg-indigo-100 selection:text-indigo-900">
             <div className="max-w-7xl mx-auto">
 
                 {/* Header */}
-                <header className="mb-16 md:mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8">
+                <header className="mb-12 md:mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8">
                     <div className="max-w-2xl">
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="flex items-center gap-2 mb-6"
+                            className="flex items-center gap-2 mb-4 md:mb-6"
                         >
-                            <div className="h-px w-8 bg-indigo-500" />
-                            <span className="text-xs font-black uppercase tracking-[0.3em] text-indigo-600">Developer Cloud</span>
+                            <div className="h-px w-6 md:w-8 bg-indigo-500" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600">Developer Cloud</span>
                         </motion.div>
 
                         <motion.h1
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-[0.9]"
+                            className="text-4xl sm:text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-[1.1] md:leading-[0.9]"
                         >
                             Simulation <span className="text-indigo-600 underline decoration-indigo-200 decoration-8 underline-offset-8">Hub</span>
                         </motion.h1>
@@ -142,7 +142,7 @@ export default function SimulationHub() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="mt-8 text-xl text-slate-500 font-medium max-w-xl leading-relaxed"
+                            className="mt-6 md:mt-8 text-lg md:text-xl text-slate-500 font-medium max-w-xl leading-relaxed"
                         >
                             Powerful sandbox tools designed to help you build, balance, and fine-tune complex game economies and player progression systems.
                         </motion.p>
@@ -154,13 +154,13 @@ export default function SimulationHub() {
                         transition={{ delay: 0.3 }}
                         className="flex gap-4"
                     >
-                        <div className="bg-white p-4 rounded-3xl border border-slate-100 flex items-center gap-4 px-6 shadow-sm">
-                            <div className="p-3 bg-green-50 text-green-600 rounded-2xl">
-                                <Zap size={20} fill="currentColor" />
+                        <div className="bg-white p-3 md:p-4 rounded-3xl border border-slate-100 flex items-center gap-3 md:gap-4 px-5 md:px-6 shadow-sm">
+                            <div className="p-2 md:p-3 bg-green-50 text-green-600 rounded-2xl">
+                                <Zap size={18} fill="currentColor" />
                             </div>
                             <div>
-                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Environment</div>
-                                <div className="text-sm font-bold text-slate-800">Local Dev Mode</div>
+                                <div className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Environment</div>
+                                <div className="text-xs md:text-sm font-bold text-slate-800">Local Dev Mode</div>
                             </div>
                         </div>
                     </motion.div>
