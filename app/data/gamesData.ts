@@ -1,4 +1,4 @@
-import { LucideIcon, Sword, Dna, Scale, Cpu, Compass, BarChart3, Zap } from "lucide-react";
+import { LucideIcon, Sword, Dna, Scale, Cpu, Compass, BarChart3, Zap, MessageSquare } from "lucide-react";
 
 export interface GameMetadata {
     id: string;
@@ -82,5 +82,14 @@ export const GAMES_DATA: GameMetadata[] = [
         href: "/simulation/math-match",
         design: "Math Match is a fast-paced arithmetic game with a Tinder-style swipe mechanic. It's designed to build rapid calculation speed and improve focus through immediate decision-making.",
         howToPlay: "1. **Swipe Right**: If the equation is **CORRECT**.\n2. **Swipe Left**: If the equation is **INCORRECT**.\n3. Build a **Combo** by getting 3 correct answers in a row to earn double points.\n4. Don't let your lives (hearts) run out!"
+    },
+    {
+        id: "spill-the-tea",
+        title: "Spill The Tea",
+        icon: MessageSquare,
+        color: "bg-emerald-500",
+        href: "/spill-the-tea",
+        design: "Spill The Tea is a logic-based chat game where you must identify logical fallacies and valid conclusions in a simulated group chat environment.",
+        howToPlay: "1. Read the premises sent by the bots in the group chat.\n2. A 'Ghost Bubble' conclusion will appear at the bottom.\n3. **Swipe Right (Send)**: If the conclusion logically follows from the premises (Valid).\n4. **Swipe Left (Delete)**: If the conclusion is a hoax or logical fallacy (Invalid).\n5. Maintain your reputation and gain followers by making correct logical deductions!"
     }
 ];
