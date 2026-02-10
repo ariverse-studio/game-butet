@@ -355,14 +355,14 @@ export default function EconomyDashboard() {
                                 <Link href="/simulation/mission" className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-indigo-50 hover:border-indigo-100 transition-all group">
                                     <div className="flex items-center gap-3">
                                         <Puzzle size={18} className="text-indigo-500" />
-                                        <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-700">Mission Lab</span>
+                                        <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-700">Level Designer Mission Lab</span>
                                     </div>
                                     <ChevronRight size={14} className="text-slate-300 group-hover:text-indigo-400" />
                                 </Link>
                                 <Link href="/simulation/badge" className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-rose-50 hover:border-rose-100 transition-all group">
                                     <div className="flex items-center gap-3">
                                         <Award size={18} className="text-rose-500" />
-                                        <span className="text-sm font-bold text-slate-700 group-hover:text-rose-700">Badge Lab</span>
+                                        <span className="text-sm font-bold text-slate-700 group-hover:text-rose-700">Badge Architect</span>
                                     </div>
                                     <ChevronRight size={14} className="text-slate-300 group-hover:text-rose-400" />
                                 </Link>

@@ -72,23 +72,7 @@ export default function SimulationHub() {
             tag: "Financial Balance"
         },
         {
-            title: "Vector Valley",
-            description: "Master the difference between scalar and vector quantities through grid-based missions.",
-            href: "/simulation/vector-valley",
-            icon: Zap,
-            color: "bg-gradient-to-br from-indigo-500 to-purple-600",
-            tag: "Physics & Math"
-        },
-        {
-            title: "Math Match",
-            description: "Quick-fire arithmetic verification with a Tinder-style swipe interface. Fast, fun, and competitive.",
-            href: "/simulation/math-match",
-            icon: Zap,
-            color: "bg-gradient-to-br from-red-500 to-orange-600",
-            tag: "Mental Math"
-        },
-        {
-            title: "Mission Lab",
+            title: "Level Designer Mission Lab",
             description: "Design game missions with custom logic, targets, and reward levels for the progression system.",
             href: "/simulation/mission",
             icon: Puzzle,
@@ -102,14 +86,6 @@ export default function SimulationHub() {
             icon: Award,
             color: "bg-gradient-to-br from-rose-500 to-pink-600",
             tag: "Prestige System"
-        },
-        {
-            title: "Level Designer",
-            description: "Balance XP thresholds and growth curves from Level 1 to 99. Test progression pacing and easing.",
-            href: "/simulation/levels",
-            icon: Scale,
-            color: "bg-gradient-to-br from-emerald-500 to-teal-600",
-            tag: "Progression Logic"
         }
     ];
 

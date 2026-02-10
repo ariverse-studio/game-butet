@@ -1,4 +1,4 @@
-import { LucideIcon, Sword, Dna, Scale, Cpu, Compass, BarChart3, Zap, MessageSquare } from "lucide-react";
+import { LucideIcon, Sword, Dna, Scale, Cpu, Compass, BarChart3, Zap, MessageSquare, Users } from "lucide-react";
 
 export interface GameMetadata {
     id: string;
@@ -91,5 +91,14 @@ export const GAMES_DATA: GameMetadata[] = [
         href: "/spill-the-tea",
         design: "Spill The Tea is a logic-based chat game where you must identify logical fallacies and valid conclusions in a simulated group chat environment.",
         howToPlay: "1. Read the premises sent by the bots in the group chat.\n2. A 'Ghost Bubble' conclusion will appear at the bottom.\n3. **Swipe Right (Send)**: If the conclusion logically follows from the premises (Valid).\n4. **Swipe Left (Delete)**: If the conclusion is a hoax or logical fallacy (Invalid).\n5. Maintain your reputation and gain followers by making correct logical deductions!"
+    },
+    {
+        id: "brain-tug",
+        title: "Brain Tug",
+        icon: Users,
+        color: "bg-indigo-600",
+        href: "/brain-tug",
+        design: "Brain Tug (Tarik Tambang Logika) is a fast-paced 1vs1 local multiplayer game where two players compete to solve math problems. It's a test of both speed and accuracy under pressure.",
+        howToPlay: "1. Two players compete on the same screen (Split View).\n2. Solve the math problems in your panel as fast as possible.\n3. **Correct Answer**: Pulls the rope towards you. Get a streak of 3 for a **Hulk Pull**!\n4. **Wrong Answer**: You 'Slip', moving the rope towards the opponent and getting stunned for 1 second.\n5. Pull the opponent into the mud pit to win +50 coins!"
     }
 ];
